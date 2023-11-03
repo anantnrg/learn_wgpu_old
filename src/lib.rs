@@ -1,3 +1,5 @@
+mod app;
+
 use winit::{
 	event::*,
 	event_loop::{
@@ -7,26 +9,35 @@ use winit::{
 	window::WindowBuilder,
 };
 
-pub fn run() {
+pub async fn run() {
 	env_logger::init();
 	let event_loop = EventLoop::new();
 	let window = WindowBuilder::new().build(&event_loop).unwrap();
+	let mut state = app::Application::new(window).await;
 
 	event_loop.run(move |event, _, control_flow| {
 		match event {
-			Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
-				match event {
-					WindowEvent::CloseRequested
-					| WindowEvent::KeyboardInput {
-						input:
-							KeyboardInput {
-								state: ElementState::Pressed,
-								virtual_keycode: Some(VirtualKeyCode::Escape),
-								..
-							},
-						..
-					} => *control_flow = ControlFlow::Exit,
-					_ => {}
+			Event::WindowEvent { ref event, window_id } if window_id == state.window.id() => {
+				if !state.input(event) {
+					match event {
+						WindowEvent::CloseRequested
+						| WindowEvent::KeyboardInput {
+							input:
+								KeyboardInput {
+									state: ElementState::Pressed,
+									virtual_keycode: Some(VirtualKeyCode::Escape),
+									..
+								},
+							..
+						} => *control_flow = ControlFlow::Exit,
+						WindowEvent::Resized(physical_size) => {
+							state.resize(*physical_size);
+						}
+						WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+							state.resize(**new_inner_size);
+						}
+						_ => {}
+					}
 				}
 			}
 			_ => {}
