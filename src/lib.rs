@@ -1,4 +1,5 @@
 mod app;
+mod structs;
 
 use winit::{
 	event::*,

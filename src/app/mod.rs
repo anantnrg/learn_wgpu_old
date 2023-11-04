@@ -1,7 +1,17 @@
+pub mod render;
+
+use crate::structs::render::Vertex;
+use wgpu::util::DeviceExt;
 use winit::{
 	event::WindowEvent,
 	window::Window,
 };
+
+const VERTICES: &[Vertex] = &[
+	Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+	Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+	Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+];
 
 pub struct State {
 	pub surface: wgpu::Surface,
@@ -10,6 +20,7 @@ pub struct State {
 	pub config: wgpu::SurfaceConfiguration,
 	pub size: winit::dpi::PhysicalSize<u32>,
 	pub render_pipeline: wgpu::RenderPipeline,
+	pub vertex_buffer: wgpu::Buffer,
 	pub window: Window,
 }
 
@@ -105,7 +116,13 @@ impl State {
 			multiview: None,
 		});
 
-		Self { window, surface, device, queue, config, size, render_pipeline }
+		let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+			label: Some("Vertex Buffer"),
+			contents: bytemuck::cast_slice(VERTICES),
+			usage: wgpu::BufferUsages::VERTEX,
+		});
+
+		Self { window, surface, device, queue, config, size, render_pipeline, vertex_buffer }
 	}
 
 	pub fn window(&self) -> &Window {
@@ -127,37 +144,5 @@ impl State {
 
 	pub fn update(&mut self) {
 		// will update later
-	}
-
-	pub fn render(&mut self) -> anyhow::Result<(), wgpu::SurfaceError> {
-		let output = self.surface.get_current_texture()?;
-
-		let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
-
-		let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-			label: Some("Render Encoder"),
-		});
-
-		{
-			let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-				label: Some("Render Pass"),
-				color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-					view: &view,
-					resolve_target: None,
-					ops: wgpu::Operations {
-						load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.1, g: 0.2, b: 0.3, a: 1.0 }),
-						store: true,
-					},
-				})],
-				depth_stencil_attachment: None,
-			});
-			render_pass.set_pipeline(&self.render_pipeline);
-			render_pass.draw(0..3, 0..1);
-		}
-
-		self.queue.submit(std::iter::once(encoder.finish()));
-		output.present();
-
-		Ok(())
 	}
 }
