@@ -8,10 +8,10 @@ use winit::{
 };
 
 const VERTICES: &[Vertex] = &[
-	Vertex { position: [-0.4, 0.2, 0.0], color: [0.5, 0.1, 0.5] }, // A
-	Vertex { position: [-0.4, -0.2, 0.0], color: [0.5, 0.4, 0.5] }, // B
-	Vertex { position: [0.4, -0.2, 0.0], color: [0.12, 0.2, 0.5] }, // C
-	Vertex { position: [0.4, 0.2, 0.0], color: [0.5, 0.0, 0.1] },  // D
+	Vertex { position: [-0.4, 0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
+	Vertex { position: [-0.4, -0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
+	Vertex { position: [0.4, -0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
+	Vertex { position: [0.4, 0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
 ];
 
 const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
@@ -138,7 +138,7 @@ impl State {
 		});
 		let num_indices = INDICES.len() as u32;
 
-		println!("{:?}", crate::utils::rgb_to_srgb((30, 30, 46)));
+		println!("{:?}", crate::utils::rgb_to_srgb((250, 179, 135)));
 
 		Self {
 			window,
