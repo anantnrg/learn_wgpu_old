@@ -21,6 +21,7 @@ pub struct State {
 	pub size: winit::dpi::PhysicalSize<u32>,
 	pub render_pipeline: wgpu::RenderPipeline,
 	pub vertex_buffer: wgpu::Buffer,
+	pub num_vertices: u32,
 	pub window: Window,
 }
 
@@ -85,7 +86,11 @@ impl State {
 		let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 			label: Some("Render Pipeline"),
 			layout: Some(&render_pipeline_layout),
-			vertex: wgpu::VertexState { module: &shader, entry_point: "vs_main", buffers: &[] },
+			vertex: wgpu::VertexState {
+				module: &shader,
+				entry_point: "vs_main",
+				buffers: &[Vertex::desc()],
+			},
 			fragment: Some(wgpu::FragmentState {
 				module: &shader,
 				entry_point: "fs_main",
@@ -122,7 +127,19 @@ impl State {
 			usage: wgpu::BufferUsages::VERTEX,
 		});
 
-		Self { window, surface, device, queue, config, size, render_pipeline, vertex_buffer }
+		let num_vertices = VERTICES.len() as u32;
+
+		Self {
+			window,
+			surface,
+			device,
+			queue,
+			config,
+			size,
+			render_pipeline,
+			vertex_buffer,
+			num_vertices,
+		}
 	}
 
 	pub fn window(&self) -> &Window {
@@ -138,7 +155,7 @@ impl State {
 		}
 	}
 
-	pub fn input(&mut self, event: &WindowEvent) -> bool {
+	pub fn input(&mut self, _event: &WindowEvent) -> bool {
 		false
 	}
 
