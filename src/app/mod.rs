@@ -1,9 +1,6 @@
 pub mod render;
 
-use crate::{
-	structs::render::Vertex,
-	utils::rgb_to_srgb,
-};
+use crate::structs::render::Vertex;
 use wgpu::util::DeviceExt;
 use winit::{
 	event::WindowEvent,
@@ -11,14 +8,13 @@ use winit::{
 };
 
 const VERTICES: &[Vertex] = &[
-	Vertex { position: [-0.0868241, 0.49240386, 0.0], color: [0.89, 0.25, 0.39] },
-	Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.89, 0.25, 0.39] },
-	Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.89, 0.25, 0.39] },
-	Vertex { position: [0.35966998, -0.3473291, 0.0], color: [0.89, 0.25, 0.39] },
-	Vertex { position: [0.44147372, 0.2347359, 0.0], color: [0.89, 0.25, 0.39] },
+	Vertex { position: [-0.4, 0.2, 0.0], color: [0.5, 0.1, 0.5] }, // A
+	Vertex { position: [-0.4, -0.2, 0.0], color: [0.5, 0.4, 0.5] }, // B
+	Vertex { position: [0.4, -0.2, 0.0], color: [0.12, 0.2, 0.5] }, // C
+	Vertex { position: [0.4, 0.2, 0.0], color: [0.5, 0.0, 0.1] },  // D
 ];
 
-const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
+const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 
 pub struct State {
 	pub surface: wgpu::Surface,
@@ -142,7 +138,7 @@ impl State {
 		});
 		let num_indices = INDICES.len() as u32;
 
-		println!("{:?}", crate::utils::rgb_to_srgb((243, 139, 168)));
+		println!("{:?}", crate::utils::rgb_to_srgb((30, 30, 46)));
 
 		Self {
 			window,

@@ -17,7 +17,12 @@ impl State {
 					view: &view,
 					resolve_target: None,
 					ops: wgpu::Operations {
-						load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.1, g: 0.2, b: 0.3, a: 1.0 }),
+						load: wgpu::LoadOp::Clear(wgpu::Color {
+							r: 0.01298,
+							g: 0.01298,
+							b: 0.02732,
+							a: 1.0,
+						}),
 						store: true,
 					},
 				})],
