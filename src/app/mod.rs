@@ -1,6 +1,9 @@
 pub mod render;
 
-use crate::structs::render::Vertex;
+use crate::{
+	structs::render::Vertex,
+	utils::rgb_to_srgb,
+};
 use wgpu::util::DeviceExt;
 use winit::{
 	event::WindowEvent,
@@ -8,10 +11,14 @@ use winit::{
 };
 
 const VERTICES: &[Vertex] = &[
-	Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
-	Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
-	Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+	Vertex { position: [-0.0868241, 0.49240386, 0.0], color: [0.89, 0.25, 0.39] },
+	Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.89, 0.25, 0.39] },
+	Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.89, 0.25, 0.39] },
+	Vertex { position: [0.35966998, -0.3473291, 0.0], color: [0.89, 0.25, 0.39] },
+	Vertex { position: [0.44147372, 0.2347359, 0.0], color: [0.89, 0.25, 0.39] },
 ];
+
+const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
 
 pub struct State {
 	pub surface: wgpu::Surface,
@@ -21,7 +28,8 @@ pub struct State {
 	pub size: winit::dpi::PhysicalSize<u32>,
 	pub render_pipeline: wgpu::RenderPipeline,
 	pub vertex_buffer: wgpu::Buffer,
-	pub num_vertices: u32,
+	pub index_buffer: wgpu::Buffer,
+	pub num_indices: u32,
 	pub window: Window,
 }
 
@@ -127,7 +135,14 @@ impl State {
 			usage: wgpu::BufferUsages::VERTEX,
 		});
 
-		let num_vertices = VERTICES.len() as u32;
+		let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+			label: Some("Index Buffer"),
+			contents: bytemuck::cast_slice(INDICES),
+			usage: wgpu::BufferUsages::INDEX,
+		});
+		let num_indices = INDICES.len() as u32;
+
+		println!("{:?}", crate::utils::rgb_to_srgb((243, 139, 168)));
 
 		Self {
 			window,
@@ -138,7 +153,8 @@ impl State {
 			size,
 			render_pipeline,
 			vertex_buffer,
-			num_vertices,
+			index_buffer,
+			num_indices,
 		}
 	}
 
