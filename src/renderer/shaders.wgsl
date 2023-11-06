@@ -1,4 +1,3 @@
-
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) color: vec3<f32>,
@@ -22,4 +21,33 @@ fn vs_main(
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     return vec4<f32>(in.color, 1.0);
+}
+
+fn box(in_coords: vec2<f32>, in_size: vec2<f32>, in_radius: vec4<f32>) -> f32 {
+    var radius: vec4<f32>;
+    var q: vec2<f32>;
+    if (in_coords[0] > 0.0) {
+        radius.x = radius.x;
+        radius.y = radius.y;
+    } else {
+        radius.x = radius.z;
+        radius.y = radius.w;
+    }
+
+    if (in_coords[1] > 0.0) {
+        radius.z = radius.x;
+        radius.w = radius.y;
+    } else {
+        radius.z = radius.y;
+        radius.w = radius.x;
+    }
+
+    q = abs(in_coords) - in_size + radius.xy;
+
+    var min_q = min(q.x, q.y);
+    var max_q = max(q.x, q.y);
+
+    var distance = min(max_q, 0.0) + length(max(q, vec2<f32>(0.0, 0.0)) - radius.x);
+
+    return distance;
 }
