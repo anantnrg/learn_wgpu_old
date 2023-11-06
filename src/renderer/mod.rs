@@ -1,10 +1,16 @@
 pub mod render;
+pub mod viewport;
 
 use crate::structs::render::Vertex;
 use wgpu::util::DeviceExt;
 use winit::{
 	event::WindowEvent,
 	window::Window,
+};
+
+use self::viewport::{
+	Viewport,
+	ViewportUniform,
 };
 
 const VERTICES: &[Vertex] = &[
@@ -26,6 +32,10 @@ pub struct State {
 	pub vertex_buffer: wgpu::Buffer,
 	pub index_buffer: wgpu::Buffer,
 	pub num_indices: u32,
+	pub viewport: viewport::Viewport,
+	pub viewport_uniform: ViewportUniform,
+	pub viewport_buffer: wgpu::Buffer,
+	pub viewport_bind_group: wgpu::BindGroup,
 	pub window: Window,
 }
 
@@ -80,10 +90,54 @@ impl State {
 		surface.configure(&device, &config);
 
 		let shader = device.create_shader_module(wgpu::include_wgsl!("shaders.wgsl"));
+
+		let viewport = Viewport {
+			eye: (0.0, 1.0, 2.0).into(),
+			target: (0.0, 0.0, 0.0).into(),
+			up: cgmath::Vector3::unit_y(),
+			aspect: config.width as f32 / config.height as f32,
+			fovy: 45.0,
+			znear: 0.1,
+			zfar: 100.0,
+		};
+
+		let mut viewport_uniform = viewport::ViewportUniform::new();
+		viewport_uniform.update_view_proj(&viewport);
+
+		let viewport_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+			label: Some("Viewport Buffer"),
+			contents: bytemuck::cast_slice(&[viewport_uniform]),
+			usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+		});
+
+		let viewport_bind_group_layout =
+			device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+				entries: &[wgpu::BindGroupLayoutEntry {
+					binding: 0,
+					visibility: wgpu::ShaderStages::VERTEX,
+					ty: wgpu::BindingType::Buffer {
+						ty: wgpu::BufferBindingType::Uniform,
+						has_dynamic_offset: false,
+						min_binding_size: None,
+					},
+					count: None,
+				}],
+				label: Some("viewport_bind_group_layout"),
+			});
+
+		let viewport_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+			layout: &viewport_bind_group_layout,
+			entries: &[wgpu::BindGroupEntry {
+				binding: 0,
+				resource: viewport_buffer.as_entire_binding(),
+			}],
+			label: Some("camera_bind_group"),
+		});
+
 		let render_pipeline_layout =
 			device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
 				label: Some("Render Pipeline Layout"),
-				bind_group_layouts: &[],
+				bind_group_layouts: &[&viewport_bind_group_layout],
 				push_constant_ranges: &[],
 			});
 
@@ -138,8 +192,6 @@ impl State {
 		});
 		let num_indices = INDICES.len() as u32;
 
-		println!("{:?}", crate::utils::rgb_to_srgb((250, 179, 135)));
-
 		Self {
 			window,
 			surface,
@@ -151,6 +203,10 @@ impl State {
 			vertex_buffer,
 			index_buffer,
 			num_indices,
+			viewport,
+			viewport_bind_group,
+			viewport_buffer,
+			viewport_uniform,
 		}
 	}
 
