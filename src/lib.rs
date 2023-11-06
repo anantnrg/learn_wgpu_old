@@ -1,4 +1,4 @@
-mod app;
+mod renderer;
 mod structs;
 mod utils;
 
@@ -15,7 +15,7 @@ pub async fn run() {
 	env_logger::init();
 	let event_loop = EventLoop::new();
 	let window = WindowBuilder::new().build(&event_loop).unwrap();
-	let mut state = app::State::new(window).await;
+	let mut state = renderer::State::new(window).await;
 
 	event_loop.run(move |event, _, control_flow| {
 		match event {

@@ -8,10 +8,14 @@ use winit::{
 };
 
 const VERTICES: &[Vertex] = &[
+	// Top-left corner
 	Vertex { position: [-0.4, 0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
-	Vertex { position: [-0.4, -0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
-	Vertex { position: [0.4, -0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
+	// Top-right corner
 	Vertex { position: [0.4, 0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
+	// Bottom-right corner
+	Vertex { position: [0.4, -0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
+	// Bottom-left corner
+	Vertex { position: [-0.4, -0.2, 0.0], color: [0.9559735, 0.45078585, 0.2422812] },
 ];
 
 const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
