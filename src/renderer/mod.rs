@@ -11,7 +11,10 @@ use winit::{
 };
 
 use self::{
-	primitives::r#box::BoxRaw,
+	primitives::r#box::{
+		Box,
+		BoxRaw,
+	},
 	viewport::{
 		Viewport,
 		ViewportUniform,
@@ -27,12 +30,8 @@ const VERTICES: &[Vertex] = &[
 
 const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 
-const NUM_INSTANCES_PER_ROW: u32 = 10;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
-	NUM_INSTANCES_PER_ROW as f32 * 0.5,
-	0.0,
-	NUM_INSTANCES_PER_ROW as f32 * 0.5,
-);
+const NUM_INSTANCES_PER_ROW: u32 = 1;
+const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(0.0, 0.0, 0.0);
 
 pub struct State {
 	pub surface: wgpu::Surface,
@@ -148,25 +147,31 @@ impl State {
 			label: Some("camera_bind_group"),
 		});
 
-		let instances = (0..NUM_INSTANCES_PER_ROW)
-			.flat_map(|z| {
-				(0..NUM_INSTANCES_PER_ROW).map(move |x| {
-					let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 }
-						- INSTANCE_DISPLACEMENT;
+		// let instances = (0..NUM_INSTANCES_PER_ROW)
+		// 	.flat_map(|z| {
+		// 		(0..NUM_INSTANCES_PER_ROW).map(move |x| {
+		// 			let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 }
+		// 				- INSTANCE_DISPLACEMENT;
 
-					let rotation = if position.is_zero() {
-						cgmath::Quaternion::from_axis_angle(
-							cgmath::Vector3::unit_z(),
-							cgmath::Deg(0.0),
-						)
-					} else {
-						cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
-					};
+		// 			let rotation = if position.is_zero() {
+		// 				cgmath::Quaternion::from_axis_angle(
+		// 					cgmath::Vector3::unit_z(),
+		// 					cgmath::Deg(0.0),
+		// 				)
+		// 			} else {
+		// 				cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+		// 			};
 
-					primitives::r#box::Box { position, rotation }
-				})
-			})
-			.collect::<Vec<_>>();
+		// 			primitives::r#box::Box { position, rotation }
+		// 		})
+		// 	})
+		// 	.collect::<Vec<_>>();
+
+		let instances = vec![Box {
+			position: cgmath::Vector3::new(0.0, 0.0, 0.0),
+			rotation: cgmath::Quaternion::from_angle_x(cgmath::Deg(0.0)),
+			corner_radius: 0.4,
+		}];
 
 		let instance_data =
 			instances.iter().map(primitives::r#box::Box::to_raw).collect::<Vec<_>>();

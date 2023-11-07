@@ -1,12 +1,14 @@
 pub struct Box {
 	pub position: cgmath::Vector3<f32>,
 	pub rotation: cgmath::Quaternion<f32>,
+	pub corner_radius: f32,
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct BoxRaw {
 	pub model: [[f32; 4]; 4],
+	pub corner_radius: f32,
 }
 
 impl Box {
@@ -15,6 +17,7 @@ impl Box {
 			model: (cgmath::Matrix4::from_translation(self.position)
 				* cgmath::Matrix4::from(self.rotation))
 			.into(),
+			corner_radius: self.corner_radius,
 		}
 	}
 }
