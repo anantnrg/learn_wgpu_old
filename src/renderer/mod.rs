@@ -1,16 +1,21 @@
+pub mod primitives;
 pub mod render;
 pub mod viewport;
 
 use crate::structs::render::Vertex;
+use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
 	event::WindowEvent,
 	window::Window,
 };
 
-use self::viewport::{
-	Viewport,
-	ViewportUniform,
+use self::{
+	primitives::r#box::BoxRaw,
+	viewport::{
+		Viewport,
+		ViewportUniform,
+	},
 };
 
 const VERTICES: &[Vertex] = &[
@@ -21,6 +26,13 @@ const VERTICES: &[Vertex] = &[
 ];
 
 const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
+
+const NUM_INSTANCES_PER_ROW: u32 = 10;
+const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
+	NUM_INSTANCES_PER_ROW as f32 * 0.5,
+	0.0,
+	NUM_INSTANCES_PER_ROW as f32 * 0.5,
+);
 
 pub struct State {
 	pub surface: wgpu::Surface,
@@ -36,6 +48,8 @@ pub struct State {
 	pub viewport_uniform: ViewportUniform,
 	pub viewport_buffer: wgpu::Buffer,
 	pub viewport_bind_group: wgpu::BindGroup,
+	instances: Vec<primitives::r#box::Box>,
+	instance_buffer: wgpu::Buffer,
 	pub window: Window,
 }
 
@@ -92,11 +106,11 @@ impl State {
 		let shader = device.create_shader_module(wgpu::include_wgsl!("shaders.wgsl"));
 
 		let viewport = Viewport {
-			eye: (0.0, 0.0, 1.0).into(),
+			eye: (0.0, 0.0, 12.0).into(),
 			target: (0.0, 0.0, 0.0).into(),
 			up: cgmath::Vector3::unit_y(),
 			aspect: config.width as f32 / config.height as f32,
-			fovy: 25.0,
+			fovy: 45.0,
 			znear: 0.1,
 			zfar: 100.0,
 		};
@@ -134,6 +148,34 @@ impl State {
 			label: Some("camera_bind_group"),
 		});
 
+		let instances = (0..NUM_INSTANCES_PER_ROW)
+			.flat_map(|z| {
+				(0..NUM_INSTANCES_PER_ROW).map(move |x| {
+					let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 }
+						- INSTANCE_DISPLACEMENT;
+
+					let rotation = if position.is_zero() {
+						cgmath::Quaternion::from_axis_angle(
+							cgmath::Vector3::unit_z(),
+							cgmath::Deg(0.0),
+						)
+					} else {
+						cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+					};
+
+					primitives::r#box::Box { position, rotation }
+				})
+			})
+			.collect::<Vec<_>>();
+
+		let instance_data =
+			instances.iter().map(primitives::r#box::Box::to_raw).collect::<Vec<_>>();
+		let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+			label: Some("Instance Buffer"),
+			contents: bytemuck::cast_slice(&instance_data),
+			usage: wgpu::BufferUsages::VERTEX,
+		});
+
 		let render_pipeline_layout =
 			device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
 				label: Some("Render Pipeline Layout"),
@@ -147,7 +189,7 @@ impl State {
 			vertex: wgpu::VertexState {
 				module: &shader,
 				entry_point: "vs_main",
-				buffers: &[Vertex::desc()],
+				buffers: &[Vertex::desc(), BoxRaw::desc()],
 			},
 			fragment: Some(wgpu::FragmentState {
 				module: &shader,
@@ -207,6 +249,8 @@ impl State {
 			viewport_bind_group,
 			viewport_buffer,
 			viewport_uniform,
+			instances,
+			instance_buffer,
 		}
 	}
 
